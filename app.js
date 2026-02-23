@@ -1731,7 +1731,21 @@
 
   function applyTheme() {
     const saved = localStorage.getItem('lmv-theme');
-    if (saved) document.documentElement.setAttribute('data-theme', saved);
+    if (saved) {
+      document.documentElement.setAttribute('data-theme', saved);
+    } else {
+      // Follow the user's OS-level dark/light preference
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+    }
+
+    // Listen for OS theme changes in real-time (e.g. sunset auto-switch)
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+      if (!localStorage.getItem('lmv-theme')) {
+        document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light');
+        if (state.lastCalc) setTimeout(() => drawPieChart(state.lastCalc), 100);
+      }
+    });
   }
 
   // ======================= PROFILES ======================
