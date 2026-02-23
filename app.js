@@ -97,9 +97,10 @@
     legendSection: $('#legendSection'), heatmapToggle: $('#heatmapToggle'),
     gridSection: $('#gridSection'), dotGrid: $('#dotGrid'), tooltip: $('#tooltip'),
     milestoneSection: $('#milestoneSection'), milestoneName: $('#milestoneName'),
-    milestoneAge: $('#milestoneAge'), milestoneIcon: $('#milestoneIcon'),
+    milestoneAge: $('#milestoneAge'), milestoneMonth: $('#milestoneMonth'), milestoneIcon: $('#milestoneIcon'),
     addMilestoneBtn: $('#addMilestoneBtn'), milestoneList: $('#milestoneList'),
     goalSection: $('#goalSection'), goalName: $('#goalName'), goalAge: $('#goalAge'),
+    goalMonth: $('#goalMonth'),
     addGoalBtn: $('#addGoalBtn'), goalList: $('#goalList'),
     chartsSection: $('#chartsSection'), donutFill: $('#donutFill'),
     donutText: $('#donutText'), donutSubtext: $('#donutSubtext'),
@@ -139,6 +140,42 @@
   let audioCtx = null;
   let confettiAnimId = null;
 
+  // ---- Custom Modal (replaces browser prompt) ----
+  function showCustomModal(title, description, placeholder) {
+    return new Promise((resolve) => {
+      const modal = document.getElementById('customModal');
+      const overlay = modal.querySelector('.custom-modal-overlay');
+      const input = document.getElementById('customModalInput');
+      const titleEl = document.getElementById('customModalTitle');
+      const descEl = document.getElementById('customModalDesc');
+      const okBtn = document.getElementById('customModalOk');
+      const cancelBtn = document.getElementById('customModalCancel');
+
+      titleEl.textContent = title || 'Enter Details';
+      descEl.textContent = description || '';
+      input.placeholder = placeholder || 'Type here...';
+      input.value = '';
+      modal.classList.remove('hidden');
+      setTimeout(() => input.focus(), 100);
+
+      function cleanup() {
+        modal.classList.add('hidden');
+        okBtn.removeEventListener('click', onOk);
+        cancelBtn.removeEventListener('click', onCancel);
+        overlay.removeEventListener('click', onCancel);
+        input.removeEventListener('keydown', onKey);
+      }
+      function onOk() { cleanup(); resolve(input.value); }
+      function onCancel() { cleanup(); resolve(null); }
+      function onKey(e) { if (e.key === 'Enter') onOk(); else if (e.key === 'Escape') onCancel(); }
+
+      okBtn.addEventListener('click', onOk);
+      cancelBtn.addEventListener('click', onCancel);
+      overlay.addEventListener('click', onCancel);
+      input.addEventListener('keydown', onKey);
+    });
+  }
+
   // ======================= INIT =======================
   function init() {
     loadState();
@@ -162,7 +199,9 @@
     dom.closeExportPanel.addEventListener('click', () => dom.exportPanel.classList.add('hidden'));
     dom.exportImage.addEventListener('click', exportAsImage);
     dom.exportStats.addEventListener('click', exportStatsText);
-    dom.exportPrint.addEventListener('click', () => window.print());
+    dom.exportPrint.addEventListener('click', () => {
+      window.print();
+    });
     dom.exportShare.addEventListener('click', shareData);
     dom.addProfileBtn.addEventListener('click', addProfile);
     dom.deleteProfileBtn.addEventListener('click', deleteProfile);
@@ -455,8 +494,8 @@
   function showSections() {
     const sections = [
       dom.quoteSection, dom.countdownSection, dom.statsSection,
-      dom.insightsSection,
-      dom.comparisonSection, dom.legendSection, dom.gridSection,
+      dom.legendSection, dom.gridSection,
+      dom.insightsSection, dom.comparisonSection,
       dom.milestoneSection, dom.goalSection,
       dom.chartsSection, dom.breakdownSection, dom.timelineSection,
     ];
@@ -896,8 +935,9 @@
   function getMilestoneMonths() {
     const map = {};
     state.milestones.forEach((m) => {
-      const month = m.age * 12;
-      map[month] = m.icon + ' ' + m.name;
+      const mo = (m.month || 1) - 1;
+      const idx = m.age * 12 + mo;
+      map[idx] = m.icon + ' ' + m.name;
     });
     return map;
   }
@@ -905,7 +945,8 @@
   function getMilestoneWeeks() {
     const map = {};
     state.milestones.forEach((m) => {
-      const week = m.age * 52;
+      const mo = (m.month || 1) - 1;
+      const week = m.age * 52 + Math.round(mo * (52 / 12));
       map[week] = m.icon + ' ' + m.name;
     });
     return map;
@@ -914,8 +955,10 @@
   function getGoalMonths() {
     const map = {};
     state.goals.forEach((g) => {
-      const month = g.age * 12;
-      map[month] = g.name;
+      const m = (g.month || 1) - 1;
+      const idx = g.age * 12 + m;
+      if (map[idx]) map[idx] += ', ' + g.name;
+      else map[idx] = g.name;
     });
     return map;
   }
@@ -923,8 +966,10 @@
   function getGoalWeeks() {
     const map = {};
     state.goals.forEach((g) => {
-      const week = g.age * 52;
-      map[week] = g.name;
+      const m = (g.month || 1) - 1;
+      const week = g.age * 52 + Math.round(m * (52 / 12));
+      if (map[week]) map[week] += ', ' + g.name;
+      else map[week] = g.name;
     });
     return map;
   }
@@ -974,30 +1019,62 @@
     }
 
     if (isNaN(age) || age < 0 || age > 150) return;
-    const name = prompt(`Add a milestone at age ${age}:`, '');
-    if (!name || !name.trim()) return;
-    if (name.trim().length > 40) return; // sanity cap
-    if (state.milestones.length >= 50) return showError('Maximum 50 milestones reached.');
-    hideError();
-    state.milestones.push({ name: sanitize(name.trim()), age, icon: '⭐', id: Date.now() });
-    renderMilestoneList();
-    renderGrid();
-    renderTimeline();
-    saveState();
-    playClick();
+    const isFuture = age > c.ageYears;
+    if (isFuture) {
+      showCustomModal(
+        'Add Goal',
+        `Set a goal for age ${age}`,
+        'What do you want to achieve?'
+      ).then((name) => {
+        if (!name || !name.trim()) return;
+        if (name.trim().length > 50) return;
+        if (state.goals.length >= 50) return showError('Maximum 50 goals reached.');
+        hideError();
+        const goalMonth = state.currentView === 'months'
+          ? ((parseInt(e.target.closest('.dot')?.dataset?.monthIndex) || 0) % 12) + 1
+          : 1;
+        state.goals.push({ name: sanitize(name.trim()), age, month: goalMonth, id: Date.now() });
+        renderGoalList();
+        renderGrid();
+        renderTimeline();
+        saveState();
+        playClick();
+      });
+    } else {
+      showCustomModal(
+        'Add Milestone',
+        `Mark a special moment at age ${age}`,
+        'What happened at this age?'
+      ).then((name) => {
+        if (!name || !name.trim()) return;
+        if (name.trim().length > 40) return;
+        if (state.milestones.length >= 50) return showError('Maximum 50 milestones reached.');
+        hideError();
+        const msMonth = state.currentView === 'months'
+          ? ((parseInt(e.target.closest('.dot')?.dataset?.monthIndex) || 0) % 12) + 1
+          : 1;
+        state.milestones.push({ name: sanitize(name.trim()), age, month: msMonth, icon: '⭐', id: Date.now() });
+        renderMilestoneList();
+        renderGrid();
+        renderTimeline();
+        saveState();
+        playClick();
+      });
+    }
   }
 
   // ---- Milestones (CRUD) ----
   function addMilestone() {
     const name = dom.milestoneName.value.trim();
     const age = parseInt(dom.milestoneAge.value);
+    const month = parseInt(dom.milestoneMonth.value) || 1;
     const icon = dom.milestoneIcon.value || '⭐';
     if (!name) return showError('Please enter a milestone name.');
     if (name.length > 40) return showError('Milestone name must be 40 characters or less.');
     if (isNaN(age) || age < 0 || age > 150) return showError('Please enter a valid age for the milestone (0–150).');
     if (state.milestones.length >= 50) return showError('Maximum 50 milestones reached. Delete some to add more.');
     hideError();
-    state.milestones.push({ name: sanitize(name), age, icon: sanitize(icon), id: Date.now() });
+    state.milestones.push({ name: sanitize(name), age, month, icon: sanitize(icon), id: Date.now() });
     dom.milestoneName.value = '';
     dom.milestoneAge.value = '';
     renderMilestoneList();
@@ -1015,9 +1092,18 @@
     saveState();
   }
 
+  function getBirthYear() {
+    const c = state.lastCalc;
+    if (c && c.dob) return c.dob.getFullYear();
+    if (c) return new Date().getFullYear() - c.ageYears;
+    return null;
+  }
+
   function renderMilestoneList() {
     dom.milestoneList.innerHTML = '';
-    const sorted = [...state.milestones].sort((a, b) => a.age - b.age);
+    const sorted = [...state.milestones].sort((a, b) => a.age - b.age || (a.month || 1) - (b.month || 1));
+    const birthYear = getBirthYear();
+    const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     sorted.forEach((m) => {
       const item = document.createElement('div');
       item.className = 'milestone-item';
@@ -1027,9 +1113,11 @@
       const textEl = document.createElement('span');
       textEl.className = 'mi-text';
       textEl.textContent = m.name;
+      const mon = (m.month || 1) - 1;
       const ageEl = document.createElement('span');
       ageEl.className = 'mi-age';
-      ageEl.textContent = 'Age ' + m.age;
+      const yearStr = birthYear != null ? ' (' + (birthYear + m.age) + ')' : '';
+      ageEl.textContent = 'Age ' + m.age + ', ' + monthNames[mon] + yearStr;
       const delBtn = document.createElement('button');
       delBtn.className = 'mi-del';
       delBtn.title = 'Delete';
@@ -1072,7 +1160,9 @@
 
   function renderGoalList() {
     dom.goalList.innerHTML = '';
-    const sorted = [...state.goals].sort((a, b) => a.age - b.age);
+    const sorted = [...state.goals].sort((a, b) => a.age - b.age || (a.month || 1) - (b.month || 1));
+    const birthYear = getBirthYear();
+    const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     sorted.forEach((g) => {
       const item = document.createElement('div');
       item.className = 'goal-item';
@@ -1083,9 +1173,15 @@
       const textEl = document.createElement('span');
       textEl.className = 'gi-text';
       textEl.textContent = g.name;
+      const mon = (g.month || 1) - 1;
       const ageEl = document.createElement('span');
       ageEl.className = 'gi-age';
-      ageEl.textContent = 'By Age ' + g.age;
+      let yearStr = '';
+      if (birthYear != null) {
+        const goalYear = birthYear + g.age + (mon >= (state.lastCalc && state.lastCalc.dob ? state.lastCalc.dob.getMonth() : 0) ? 0 : 0);
+        yearStr = ' (' + (birthYear + g.age) + ')';
+      }
+      ageEl.textContent = 'Age ' + g.age + ', ' + monthNames[mon] + yearStr;
       const delBtn = document.createElement('button');
       delBtn.className = 'gi-del';
       delBtn.title = 'Delete';
@@ -1449,7 +1545,7 @@
 
     const canvas = dom.snapshotCanvas;
     const scale = 3;
-    const w = 420, h = 560;
+    const w = 480, h = 640;
     canvas.width = w * scale;
     canvas.height = h * scale;
     canvas.style.width = w + 'px';
@@ -1459,129 +1555,166 @@
 
     const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
 
-    // Background gradient
+    // --- Background ---
     const bgGrad = ctx.createLinearGradient(0, 0, w, h);
     if (isDark) {
-      bgGrad.addColorStop(0, '#0f1f17');
+      bgGrad.addColorStop(0, '#0a1a12');
       bgGrad.addColorStop(1, '#1e3a2f');
     } else {
-      bgGrad.addColorStop(0, '#f0fdf4');
-      bgGrad.addColorStop(1, '#dcfce7');
+      bgGrad.addColorStop(0, '#ecfdf5');
+      bgGrad.addColorStop(1, '#d1fae5');
     }
     ctx.fillStyle = bgGrad;
     roundRect(ctx, 0, 0, w, h, 24);
     ctx.fill();
 
-    // Decorative accent bar
+    // Border
+    ctx.strokeStyle = isDark ? 'rgba(74,222,128,0.15)' : 'rgba(22,163,74,0.12)';
+    ctx.lineWidth = 2;
+    roundRect(ctx, 1, 1, w - 2, h - 2, 24);
+    ctx.stroke();
+
+    // Top accent bar
     const accentGrad = ctx.createLinearGradient(0, 0, w, 0);
     accentGrad.addColorStop(0, '#16a34a');
-    accentGrad.addColorStop(0.5, '#22c55e');
     accentGrad.addColorStop(1, '#4ade80');
     ctx.fillStyle = accentGrad;
-    roundRect(ctx, 0, 0, w, 6, 0);
-    ctx.fill();
+    ctx.fillRect(20, 0, w - 40, 4);
 
+    // Colors
     const textColor = isDark ? '#e8f5ec' : '#14532d';
-    const mutedColor = isDark ? 'rgba(232,245,236,0.6)' : '#166534';
-    const accentColor = isDark ? '#4ade80' : '#22c55e';
+    const mutedColor = isDark ? 'rgba(232,245,236,0.5)' : 'rgba(22,101,52,0.6)';
+    const accentColor = isDark ? '#4ade80' : '#16a34a';
 
-    // App name
+    // --- Header ---
     ctx.fillStyle = accentColor;
-    ctx.font = 'bold 14px Inter, system-ui';
+    ctx.font = 'bold 12px Inter, system-ui';
     ctx.textAlign = 'center';
-    ctx.fillText('LIFE CANVAS', w / 2, 36);
+    ctx.fillText('LIFE CANVAS', w / 2, 35);
 
-    // Age big number
     ctx.fillStyle = textColor;
-    ctx.font = 'bold 72px Inter, system-ui';
-    ctx.fillText(c.ageYears, w / 2, 115);
+    ctx.font = 'bold 64px Inter, system-ui';
+    ctx.fillText(String(c.ageYears), w / 2, 105);
 
     ctx.fillStyle = mutedColor;
-    ctx.font = '500 16px Inter, system-ui';
-    ctx.fillText('years of stories', w / 2, 142);
+    ctx.font = '500 15px Inter, system-ui';
+    ctx.fillText('years of stories', w / 2, 130);
 
     // Divider
-    ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(20,83,45,0.15)';
+    ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(20,83,45,0.1)';
     ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(60, 165); ctx.lineTo(w - 60, 165); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(80, 150); ctx.lineTo(w - 80, 150); ctx.stroke();
+    ctx.fillStyle = accentColor;
+    [w / 2 - 10, w / 2, w / 2 + 10].forEach(px => {
+      ctx.beginPath(); ctx.arc(px, 150, 2.5, 0, Math.PI * 2); ctx.fill();
+    });
 
-    // Stats grid
+    // --- Stats Cards ---
     const stats = [
       { label: 'MONTHS LIVED', value: c.monthsLived.toLocaleString() },
       { label: 'MONTHS AHEAD', value: c.monthsRemaining.toLocaleString() },
       { label: 'JOURNEY', value: c.percentComplete.toFixed(1) + '%' },
-      { label: 'EXPECTED', value: c.lifeExp + ' years' },
+      { label: 'EXPECTED', value: c.lifeExp + ' yrs' },
     ];
-
-    const colW = (w - 80) / 2;
+    const colW = (w - 90) / 2;
     stats.forEach((s, i) => {
       const col = i % 2;
       const row = Math.floor(i / 2);
-      const x = 40 + col * colW + colW / 2;
-      const y = 200 + row * 80;
+      const cx = 40 + col * (colW + 10);
+      const cy = 170 + row * 90;
+
+      ctx.fillStyle = isDark ? 'rgba(255,255,255,0.04)' : 'rgba(22,163,74,0.05)';
+      roundRect(ctx, cx, cy, colW, 75, 14);
+      ctx.fill();
+      ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(22,163,74,0.08)';
+      ctx.lineWidth = 1;
+      roundRect(ctx, cx, cy, colW, 75, 14);
+      ctx.stroke();
 
       ctx.fillStyle = accentColor;
-      ctx.font = 'bold 28px Inter, system-ui';
+      ctx.font = 'bold 26px Inter, system-ui';
       ctx.textAlign = 'center';
-      ctx.fillText(s.value, x, y);
+      ctx.fillText(s.value, cx + colW / 2, cy + 38);
 
       ctx.fillStyle = mutedColor;
-      ctx.font = '600 10px Inter, system-ui';
-      ctx.fillText(s.label, x, y + 18);
+      ctx.font = '600 9px Inter, system-ui';
+      ctx.fillText(s.label, cx + colW / 2, cy + 58);
     });
 
-    // Progress bar
-    const barY = 380;
+    // --- Progress bar ---
+    const barY = 375;
+    const barX = 50;
     const barW = w - 100;
-    const barH = 10;
-    ctx.fillStyle = isDark ? 'rgba(255,255,255,0.1)' : '#dcfce7';
-    roundRect(ctx, 50, barY, barW, barH, 5);
+    const barH = 12;
+
+    ctx.fillStyle = mutedColor;
+    ctx.font = '600 10px Inter, system-ui';
+    ctx.textAlign = 'left';
+    ctx.fillText('Life Progress', barX, barY - 6);
+    ctx.textAlign = 'right';
+    ctx.fillStyle = accentColor;
+    ctx.font = 'bold 11px Inter, system-ui';
+    ctx.fillText(c.percentComplete.toFixed(1) + '%', barX + barW, barY - 6);
+
+    ctx.fillStyle = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(22,163,74,0.08)';
+    roundRect(ctx, barX, barY, barW, barH, 6);
     ctx.fill();
 
-    const fillW = barW * (c.percentComplete / 100);
-    const barGrad = ctx.createLinearGradient(50, 0, 50 + fillW, 0);
-    barGrad.addColorStop(0, '#22c55e');
-    barGrad.addColorStop(1, '#4ade80');
-    ctx.fillStyle = barGrad;
-    roundRect(ctx, 50, barY, fillW, barH, 5);
+    const fillW = Math.max(barH, barW * (c.percentComplete / 100));
+    const fillGrad = ctx.createLinearGradient(barX, 0, barX + fillW, 0);
+    fillGrad.addColorStop(0, '#16a34a');
+    fillGrad.addColorStop(1, '#4ade80');
+    ctx.fillStyle = fillGrad;
+    roundRect(ctx, barX, barY, fillW, barH, 6);
     ctx.fill();
 
     ctx.fillStyle = mutedColor;
-    ctx.font = '500 11px Inter, system-ui';
+    ctx.font = '500 10px Inter, system-ui';
     ctx.textAlign = 'left';
-    ctx.fillText(c.ageYears + ' yrs lived', 50, barY + 28);
+    ctx.fillText(c.ageYears + ' yrs lived', barX, barY + 26);
     ctx.textAlign = 'right';
-    ctx.fillText((c.lifeExp - c.ageYears) + ' yrs ahead', w - 50, barY + 28);
+    ctx.fillText((c.lifeExp - c.ageYears) + ' yrs ahead', barX + barW, barY + 26);
 
-    // Mini dot grid (10x10 representing decades)
-    const miniDotSize = 5;
-    const miniGap = 3;
-    const gridCols = 12;
-    const gridRows = Math.ceil(c.lifeExp / gridCols);
-    const gridW = gridCols * (miniDotSize + miniGap);
-    const gridStartX = (w - gridW) / 2;
+    // --- Mini dot grid (monthly) ---
+    const totalMonths = c.lifeExp * 12;
+    const dotR = 1.6;
+    const dotGap = 1.2;
+    const dotD = dotR * 2 + dotGap;
+    const gridCols = Math.floor((w - 60) / dotD);
+    const gridStartX = (w - gridCols * dotD) / 2;
     const gridStartY = 430;
 
-    for (let i = 0; i < c.lifeExp; i++) {
+    ctx.fillStyle = mutedColor;
+    ctx.font = '600 9px Inter, system-ui';
+    ctx.textAlign = 'center';
+    ctx.fillText('EACH DOT = 1 MONTH', w / 2, gridStartY - 10);
+
+    for (let i = 0; i < totalMonths; i++) {
       const col = i % gridCols;
       const row = Math.floor(i / gridCols);
-      const x = gridStartX + col * (miniDotSize + miniGap);
-      const y = gridStartY + row * (miniDotSize + miniGap);
+      const x = gridStartX + col * dotD + dotR;
+      const y = gridStartY + row * dotD + dotR;
 
-      if (i < c.ageYears) ctx.fillStyle = isDark ? 'rgba(255,255,255,0.7)' : '#15803d';
-      else if (i === c.ageYears) ctx.fillStyle = '#facc15';
-      else ctx.fillStyle = isDark ? 'rgba(255,255,255,0.12)' : '#bbf7d0';
-
+      if (i < c.monthsLived) {
+        ctx.fillStyle = isDark ? '#86efac' : '#15803d';
+      } else if (i === c.monthsLived) {
+        ctx.fillStyle = '#facc15';
+      } else {
+        ctx.fillStyle = isDark ? 'rgba(255,255,255,0.1)' : '#d1fae5';
+      }
       ctx.beginPath();
-      ctx.arc(x + miniDotSize / 2, y + miniDotSize / 2, miniDotSize / 2, 0, Math.PI * 2);
+      ctx.arc(x, y, dotR, 0, Math.PI * 2);
       ctx.fill();
     }
 
-    // Footer
-    ctx.fillStyle = isDark ? 'rgba(232,245,236,0.3)' : 'rgba(20,83,45,0.3)';
+    // --- Footer ---
+    const gridRows = Math.ceil(totalMonths / gridCols);
+    const gridEndY = gridStartY + gridRows * dotD + 20;
+    const footerY = Math.max(gridEndY, h - 30);
+    ctx.fillStyle = isDark ? 'rgba(232,245,236,0.2)' : 'rgba(20,83,45,0.2)';
     ctx.font = '11px Inter, system-ui';
     ctx.textAlign = 'center';
-    ctx.fillText('Make every month matter.', w / 2, h - 20);
+    ctx.fillText('Make every month matter.', w / 2, footerY);
 
     dom.snapshotModal.classList.remove('hidden');
     dom.exportPanel.classList.add('hidden');
@@ -1750,17 +1883,22 @@
 
   // ======================= PROFILES ======================
   function addProfile() {
-    const name = prompt('Enter profile name:');
-    if (!name || !name.trim()) return;
-    const id = 'profile_' + Date.now();
-    state.profiles[id] = { name: name.trim() };
-    const opt = document.createElement('option');
-    opt.value = id;
-    opt.textContent = name.trim();
-    dom.profileSelect.appendChild(opt);
-    dom.profileSelect.value = id;
-    switchProfile();
-    playClick();
+    showCustomModal(
+      '👤 New Profile',
+      'Create a new profile to track a different life perspective.',
+      'Profile name...'
+    ).then((name) => {
+      if (!name || !name.trim()) return;
+      const id = 'profile_' + Date.now();
+      state.profiles[id] = { name: name.trim() };
+      const opt = document.createElement('option');
+      opt.value = id;
+      opt.textContent = name.trim();
+      dom.profileSelect.appendChild(opt);
+      dom.profileSelect.value = id;
+      switchProfile();
+      playClick();
+    });
   }
 
   function deleteProfile() {

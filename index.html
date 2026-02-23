@@ -248,26 +248,6 @@
       </div>
     </section>
 
-    <!-- Auto-Generated Insights -->
-    <section id="insightsSection" class="insights-section hidden">
-      <h2 class="section-title">&#128161; A Closer Look</h2>
-      <p class="section-desc">Patterns and perspectives from your numbers.</p>
-      <div class="insights-grid" id="insightsGrid"></div>
-    </section>
-
-    <!-- Time Comparison Cards -->
-    <section id="comparisonSection" class="comparison-section hidden">
-      <h2 class="section-title">&#128171; What's Still Ahead</h2>
-      <p class="section-desc">A different way to feel the time you have left.</p>
-      <div class="perspective-toggle glass-card" id="perspectiveToggle">
-        <button class="perspective-btn active" data-mode="remaining">Time Remaining</button>
-        <button class="perspective-btn" data-mode="lived">Time Lived</button>
-        <button class="perspective-btn" data-mode="relative">Relative</button>
-      </div>
-      <div class="comparison-grid" id="comparisonGrid"></div>
-      <p class="section-microcopy" id="comparisonMicrocopy"></p>
-    </section>
-
     <!-- Legend + View Toggle -->
     <section id="legendSection" class="legend-section hidden">
       <div class="legend glass-card">
@@ -299,7 +279,28 @@
     </section>
 
     <!-- Tooltip -->
-    <div id="tooltip" class="tooltip hidden"></div>
+    <div id="tooltip" class="tooltip hidden">
+    </div>
+
+    <!-- Auto-Generated Insights -->
+    <section id="insightsSection" class="insights-section hidden">
+      <h2 class="section-title">&#128161; A Closer Look</h2>
+      <p class="section-desc">Patterns and perspectives from your numbers.</p>
+      <div class="insights-grid" id="insightsGrid"></div>
+    </section>
+
+    <!-- Time Comparison Cards -->
+    <section id="comparisonSection" class="comparison-section hidden">
+      <h2 class="section-title">&#128171; What's Still Ahead</h2>
+      <p class="section-desc">A different way to feel the time you have left.</p>
+      <div class="perspective-toggle glass-card" id="perspectiveToggle">
+        <button class="perspective-btn active" data-mode="remaining">Time Remaining</button>
+        <button class="perspective-btn" data-mode="lived">Time Lived</button>
+        <button class="perspective-btn" data-mode="relative">Relative</button>
+      </div>
+      <div class="comparison-grid" id="comparisonGrid"></div>
+      <p class="section-microcopy" id="comparisonMicrocopy"></p>
+    </section></div>
 
     <!-- Milestones Section -->
     <section id="milestoneSection" class="milestone-section hidden">
@@ -312,6 +313,12 @@
           <input type="number" id="milestoneAge" min="0" max="150" step="1" placeholder="Age"/>
           <button type="button" class="stepper-btn stepper-mini stepper-plus" data-target="milestoneAge" aria-label="Increase"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="6" x2="12" y2="18"/><line x1="6" y1="12" x2="18" y2="12"/></svg></button>
         </div>
+        <select id="milestoneMonth">
+          <option value="1">Jan</option><option value="2">Feb</option><option value="3">Mar</option>
+          <option value="4">Apr</option><option value="5">May</option><option value="6">Jun</option>
+          <option value="7">Jul</option><option value="8">Aug</option><option value="9">Sep</option>
+          <option value="10">Oct</option><option value="11">Nov</option><option value="12">Dec</option>
+        </select>
         <select id="milestoneIcon">
           <option value="🎒">🎒 School</option><option value="🎓">🎓 Graduation</option>
           <option value="💼">💼 First Job</option><option value="💍">💍 Marriage</option>
@@ -319,7 +326,7 @@
           <option value="✈️">✈️ Travel</option><option value="🏆">🏆 Achievement</option>
           <option value="💔">💔 Loss</option><option value="⭐">⭐ Special</option>
         </select>
-        <button id="addMilestoneBtn" class="btn-sm">Add Milestone</button>
+        <button id="addMilestoneBtn" class="btn-action">Add Milestone</button>
       </div>
       <div id="milestoneList" class="milestone-list"></div>
     </section>
@@ -335,7 +342,13 @@
           <input type="number" id="goalAge" min="0" max="150" step="1" placeholder="By age"/>
           <button type="button" class="stepper-btn stepper-mini stepper-plus" data-target="goalAge" aria-label="Increase"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="6" x2="12" y2="18"/><line x1="6" y1="12" x2="18" y2="12"/></svg></button>
         </div>
-        <button id="addGoalBtn" class="btn-sm">Add Goal</button>
+        <select id="goalMonth">
+          <option value="1">Jan</option><option value="2">Feb</option><option value="3">Mar</option>
+          <option value="4">Apr</option><option value="5">May</option><option value="6">Jun</option>
+          <option value="7">Jul</option><option value="8">Aug</option><option value="9">Sep</option>
+          <option value="10">Oct</option><option value="11">Nov</option><option value="12">Dec</option>
+        </select>
+        <button id="addGoalBtn" class="btn-action">Add Goal</button>
       </div>
       <div id="goalList" class="goal-list"></div>
     </section>
@@ -427,7 +440,7 @@
           <button type="button" class="stepper-btn stepper-mini stepper-plus" data-target="customCatHours" aria-label="Increase"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="6" x2="12" y2="18"/><line x1="6" y1="12" x2="18" y2="12"/></svg></button>
         </div>
         <span style="font-size:.8rem;color:var(--text-secondary);">hrs/day</span>
-        <button id="addCustomCatBtn" class="btn-sm">Add</button>
+        <button id="addCustomCatBtn" class="btn-action">Add</button>
       </div>
     </section>
 
@@ -442,15 +455,50 @@
 
     <!-- Export Panel (shown on export click) -->
     <div id="exportPanel" class="export-panel glass-card hidden">
-      <h3>Save &amp; Share</h3>
+      <div class="export-panel-header">
+        <span class="export-panel-icon">&#128229;</span>
+        <h3>Save & Share</h3>
+      </div>
       <div class="export-actions">
-        <button id="exportImage" class="btn-sm">&#128247; Save as Image</button>
-        <button id="exportSnapshot" class="btn-sm">&#127912; Life Snapshot</button>
-        <button id="exportStats" class="btn-sm">&#128203; Copy to Clipboard</button>
-        <button id="exportPrint" class="btn-sm">&#128424; Print View</button>
-        <button id="exportShare" class="btn-sm" style="display:none;">&#128279; Share</button>
+        <button id="exportImage" class="export-action-btn">
+          <span class="export-btn-icon">&#128247;</span>
+          <span class="export-btn-label">Save as Image</span>
+        </button>
+        <button id="exportSnapshot" class="export-action-btn">
+          <span class="export-btn-icon">&#127912;</span>
+          <span class="export-btn-label">Life Snapshot</span>
+        </button>
+        <button id="exportStats" class="export-action-btn">
+          <span class="export-btn-icon">&#128203;</span>
+          <span class="export-btn-label">Copy to Clipboard</span>
+        </button>
+        <button id="exportPrint" class="export-action-btn">
+          <span class="export-btn-icon">&#128424;</span>
+          <span class="export-btn-label">Print View</span>
+        </button>
+        <button id="exportShare" class="export-action-btn" style="display:none;">
+          <span class="export-btn-icon">&#128279;</span>
+          <span class="export-btn-label">Share</span>
+        </button>
       </div>
       <button id="closeExportPanel" class="export-close">&times;</button>
+    </div>
+
+    <!-- Custom Modal Dialog (replaces browser prompt) -->
+    <div id="customModal" class="custom-modal hidden">
+      <div class="custom-modal-overlay"></div>
+      <div class="custom-modal-content glass-card">
+        <div class="custom-modal-header">
+          <span class="custom-modal-icon">&#10024;</span>
+          <h3 id="customModalTitle">Enter Details</h3>
+        </div>
+        <p class="custom-modal-desc" id="customModalDesc"></p>
+        <input type="text" id="customModalInput" class="custom-modal-input" placeholder="Type here..." maxlength="50" />
+        <div class="custom-modal-actions">
+          <button id="customModalCancel" class="custom-modal-btn cancel">Cancel</button>
+          <button id="customModalOk" class="custom-modal-btn confirm">OK</button>
+        </div>
+      </div>
     </div>
 
     <!-- Life Snapshot Modal -->
@@ -467,7 +515,7 @@
 
     <!-- Footer -->
     <footer class="footer">
-      <p>Make every month matter ⌛ &mdash; <strong>Life Canvas</strong></p>
+      <p>Make every month matter ⌛ - <strong>Life Canvas</strong></p>
     </footer>
   </div>
 
