@@ -5,7 +5,7 @@ A beautiful, interactive web app that visualizes your entire life in months, wee
 ![Life Canvas](https://img.shields.io/badge/Status-Production%20Ready-brightgreen)
 ![Hosted on](https://img.shields.io/badge/Hosted%20on-Cloudflare%20Pages-F38020?logo=cloudflarepages)
 
-**Live:** [life-canvas.pages.dev](https://life-canvas.pages.dev)
+**Live:** [life-canvas.shanmugamrenuga4.workers.dev](https://life-canvas.shanmugamrenuga4.workers.dev/)
 
 ## Features
 
