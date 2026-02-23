@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Visualize your life in months, weeks, and years. Track milestones, set goals, and gain perspective on how you spend your time." />
+  <meta name="theme-color" content="#22c55e" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Life Canvas" />
+  <title>Life Canvas</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%2322c55e'/%3E%3Cpath d='M90 40 C74 70 62 100 70 130 C76 148 104 148 110 130 C118 100 106 70 90 40z' fill='white' opacity='.9'/%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%2322c55e'/%3E%3Cpath d='M32 14 C26 22 22 32 26 42 C28 47 36 47 38 42 C42 32 38 22 32 14z' fill='white' opacity='.9'/%3E%3C/svg%3E" />
+</head>
+<body>
+  <!-- no JS? let them know -->
+  <noscript>
+    <div style="text-align:center;padding:3rem 1.5rem;font-family:system-ui,sans-serif;color:#14532d;">
+      <h1 style="font-size:1.5rem;margin-bottom:.5rem;">Life Canvas</h1>
+      <p>This app needs JavaScript to work. Please enable it in your browser settings and refresh.</p>
+    </div>
+  </noscript>
+
+  <!-- Animated SVG Background -->
+  <div class="bg-decoration" aria-hidden="true">
+    <svg class="bg-svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
+      <defs>
+        <radialGradient id="glow1" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="var(--bg-blob1)" stop-opacity="0.4"/><stop offset="100%" stop-color="var(--bg-blob1)" stop-opacity="0"/></radialGradient>
+        <radialGradient id="glow2" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="var(--bg-blob2)" stop-opacity="0.3"/><stop offset="100%" stop-color="var(--bg-blob2)" stop-opacity="0"/></radialGradient>
+        <radialGradient id="glow3" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="var(--bg-blob3)" stop-opacity="0.25"/><stop offset="100%" stop-color="var(--bg-blob3)" stop-opacity="0"/></radialGradient>
+      </defs>
+      <circle class="blob blob-1" cx="200" cy="150" r="250" fill="url(#glow1)"/>
+      <circle class="blob blob-2" cx="1200" cy="400" r="300" fill="url(#glow2)"/>
+      <circle class="blob blob-3" cx="700" cy="700" r="200" fill="url(#glow3)"/>
+      <g class="particles">
+        <circle class="particle p1" cx="100" cy="300" r="3"/><circle class="particle p2" cx="400" cy="100" r="2"/>
+        <circle class="particle p3" cx="800" cy="200" r="4"/><circle class="particle p4" cx="1100" cy="500" r="2.5"/>
+        <circle class="particle p5" cx="300" cy="600" r="3"/><circle class="particle p6" cx="600" cy="400" r="2"/>
+        <circle class="particle p7" cx="1000" cy="100" r="3.5"/><circle class="particle p8" cx="900" cy="700" r="2"/>
+        <path class="leaf leaf-1" d="M0,0 C5,-10 15,-10 20,0 C15,10 5,10 0,0Z" transform="translate(250,250)"/>
+        <path class="leaf leaf-2" d="M0,0 C5,-10 15,-10 20,0 C15,10 5,10 0,0Z" transform="translate(950,350)"/>
+        <path class="leaf leaf-3" d="M0,0 C5,-10 15,-10 20,0 C15,10 5,10 0,0Z" transform="translate(500,650)"/>
+        <path class="leaf leaf-4" d="M0,0 C4,-8 12,-8 16,0 C12,8 4,8 0,0Z" transform="translate(1200,150)"/>
+        <path class="leaf leaf-5" d="M0,0 C4,-8 12,-8 16,0 C12,8 4,8 0,0Z" transform="translate(150,500)"/>
+      </g>
+    </svg>
+  </div>
+
+  <!-- confetti overlay (JS draws here on visualize) -->
+  <canvas id="confettiCanvas" class="confetti-canvas"></canvas>
+
+  <!-- top-right floating buttons -->
+  <div class="floating-controls">
+    <button id="themeToggle" class="float-btn" aria-label="Toggle dark mode" title="Toggle theme">
+      <span class="theme-icon light-icon">&#9790;</span>
+      <span class="theme-icon dark-icon">&#9728;</span>
+    </button>
+    <button id="soundToggle" class="float-btn" aria-label="Toggle sound" title="Toggle sound">
+      <span id="soundIcon">&#128264;</span>
+    </button>
+    <button id="exportBtn" class="float-btn" aria-label="Export" title="Export / Share" style="display:none;">
+      <span>&#128229;</span>
+    </button>
+  </div>
+
+  <div class="app-container">
+    <!-- Profile Bar -->
+    <div class="profile-bar glass-card">
+      <svg class="profile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <select id="profileSelect"><option value="default">Default Profile</option></select>
+      <button id="addProfileBtn" class="profile-action-btn" title="New Profile">+</button>
+      <button id="deleteProfileBtn" class="profile-action-btn delete" title="Delete Profile">&times;</button>
+    </div>
+
+    <!-- Hero Header with Logo -->
+    <header class="hero">
+      <div class="logo-container">
+        <svg class="logo-svg" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+          <circle class="logo-ring" cx="60" cy="60" r="55"/>
+          <path class="logo-trunk" d="M60 95 L60 55"/>
+          <path class="logo-branch" d="M60 55 C55 45 45 35 35 30"/><path class="logo-branch" d="M60 55 C65 45 75 35 85 30"/>
+          <path class="logo-branch" d="M60 65 C52 58 42 53 30 50"/><path class="logo-branch" d="M60 65 C68 58 78 53 90 50"/>
+          <path class="logo-branch" d="M60 75 C52 70 42 67 35 65"/><path class="logo-branch" d="M60 75 C68 70 78 67 85 65"/>
+          <circle class="logo-leaf l1" cx="35" cy="30" r="8"/><circle class="logo-leaf l2" cx="85" cy="30" r="8"/>
+          <circle class="logo-leaf l3" cx="30" cy="50" r="7"/><circle class="logo-leaf l4" cx="90" cy="50" r="7"/>
+          <circle class="logo-leaf l5" cx="35" cy="65" r="6"/><circle class="logo-leaf l6" cx="85" cy="65" r="6"/>
+          <circle class="logo-leaf l7" cx="60" cy="22" r="10"/>
+          <path class="logo-root" d="M60 95 C55 100 45 105 40 108"/><path class="logo-root" d="M60 95 C65 100 75 105 80 108"/>
+          <path class="logo-root" d="M60 95 C58 102 55 108 55 112"/><path class="logo-root" d="M60 95 C62 102 65 108 65 112"/>
+          <path class="logo-heartbeat" d="M15 60 L40 60 L45 45 L50 70 L55 50 L60 60 L65 50 L70 70 L75 45 L80 60 L105 60"/>
+        </svg>
+      </div>
+      <h1 class="hero-title">Life Canvas</h1>
+      <p class="hero-subtitle">Each dot is a month of your life. Take a moment to see where you are.</p>
+    </header>
+
+    <!-- Input Section -->
+    <section class="input-section glass-card">
+      <div class="input-row">
+        <div class="input-group dob-group">
+          <label>Date of Birth</label>
+          <div class="dob-inputs">
+            <div class="dob-field">
+              <input type="number" id="dobDay" min="1" max="31" placeholder="DD" class="dob-input"/>
+              <span class="dob-label">Day</span>
+            </div>
+            <span class="dob-separator">/</span>
+            <div class="dob-field">
+              <input type="number" id="dobMonth" min="1" max="12" placeholder="MM" class="dob-input"/>
+              <span class="dob-label">Month</span>
+            </div>
+            <span class="dob-separator">/</span>
+            <div class="dob-field">
+              <input type="number" id="dobYear" placeholder="YYYY" class="dob-input dob-year"/>
+              <span class="dob-label">Year</span>
+            </div>
+          </div>
+        </div>
+        <div class="input-group">
+          <label for="currentAge">Your Age (years)</label>
+          <div class="stepper-wrap">
+            <button type="button" class="stepper-btn stepper-minus" data-target="currentAge" aria-label="Decrease">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="6" y1="12" x2="18" y2="12"/></svg>
+            </button>
+            <input type="number" id="currentAge" min="0" max="150" step="1" placeholder="Auto"/>
+            <button type="button" class="stepper-btn stepper-plus" data-target="currentAge" aria-label="Increase">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="6" x2="12" y2="18"/><line x1="6" y1="12" x2="18" y2="12"/></svg>
+            </button>
+          </div>
+          <span class="input-hint" id="ageHint"></span>
+        </div>
+        <div class="input-group">
+          <label for="lifeExpectancy">Expected Lifespan (years)</label>
+          <div class="stepper-wrap">
+            <button type="button" class="stepper-btn stepper-minus" data-target="lifeExpectancy" aria-label="Decrease">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="6" y1="12" x2="18" y2="12"/></svg>
+            </button>
+            <input type="number" id="lifeExpectancy" min="1" max="150" step="1" value="70"/>
+            <button type="button" class="stepper-btn stepper-plus" data-target="lifeExpectancy" aria-label="Increase">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="6" x2="12" y2="18"/><line x1="6" y1="12" x2="18" y2="12"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+      <!-- Country-based Life Expectancy -->
+      <div class="country-row">
+        <label for="countrySelect">
+          <svg class="country-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10A15.3 15.3 0 0112 2z"/></svg>
+          Country (auto-fill expectancy)
+        </label>
+        <select id="countrySelect">
+          <option value="">-- Select Country --</option>
+          <option value="85">Hong Kong</option><option value="84">Japan</option><option value="84">Singapore</option>
+          <option value="83">Switzerland</option><option value="83">Australia</option><option value="83">Spain</option>
+          <option value="83">Italy</option><option value="83">Iceland</option><option value="83">South Korea</option>
+          <option value="83">Sweden</option><option value="83">Norway</option>
+          <option value="82">France</option><option value="82">Canada</option><option value="82">New Zealand</option>
+          <option value="82">Ireland</option><option value="82">Netherlands</option>
+          <option value="81">United Kingdom</option><option value="81">Germany</option><option value="81">Finland</option>
+          <option value="81">Austria</option><option value="81">Belgium</option><option value="81">Denmark</option>
+          <option value="81">Portugal</option>
+          <option value="80">Chile</option><option value="80">Greece</option>
+          <option value="79">United States</option>
+          <option value="78">UAE</option><option value="78">Thailand</option>
+          <option value="77">Saudi Arabia</option><option value="77">Argentina</option><option value="77">Colombia</option>
+          <option value="77">China</option>
+          <option value="76">Malaysia</option><option value="76">Brazil</option><option value="76">Turkey</option>
+          <option value="75">Mexico</option><option value="75">Vietnam</option>
+          <option value="73">Russia</option><option value="73">Bangladesh</option>
+          <option value="72">Indonesia</option><option value="72">Philippines</option><option value="72">Egypt</option>
+          <option value="70" selected>India</option>
+          <option value="67">Pakistan</option>
+          <option value="65">South Africa</option>
+          <option value="55">Nigeria</option>
+        </select>
+      </div>
+    </section>
+
+    <!-- Reflection Prompt (shown on load, before visualize) -->
+    <div id="reflectionPrompt" class="reflection-prompt glass-card">
+      <span class="reflection-icon">💭</span>
+      <p class="reflection-text" id="reflectionText"></p>
+    </div>
+
+    <!-- Visualize Button (OUTSIDE the card) -->
+    <div class="visualize-btn-wrap">
+      <button id="visualizeBtn" class="btn-primary">
+        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+        </svg>
+        Reveal My Life
+      </button>
+    </div>
+
+    <!-- Error Message -->
+    <div id="errorMsg" class="error-msg hidden"></div>
+
+    <!-- Motivational Quote -->
+    <section id="quoteSection" class="quote-section hidden">
+      <div class="quote-card glass-card">
+        <span class="quote-mark">&ldquo;</span>
+        <p class="quote-text" id="quoteText"></p>
+        <span class="quote-author" id="quoteAuthor"></span>
+      </div>
+    </section>
+
+    <!-- Daily Countdown -->
+    <section id="countdownSection" class="countdown-section hidden">
+      <div class="countdown-grid">
+        <div class="countdown-card glass-card">
+          <span class="countdown-icon">&#127874;</span>
+          <span class="countdown-number" id="daysToBirthday">0</span>
+          <span class="countdown-label">Days Until Your Next Birthday</span>
+          <span class="countdown-subtext">Another trip around the sun</span>
+        </div>
+        <div class="countdown-card glass-card">
+          <span class="countdown-icon">&#9200;</span>
+          <span class="countdown-number" id="totalDaysLived">0</span>
+          <span class="countdown-label">Days You've Experienced</span>
+          <span class="countdown-subtext">Each one shaped who you are</span>
+        </div>
+        <div class="countdown-card glass-card">
+          <span class="countdown-icon">&#9203;</span>
+          <span class="countdown-number" id="totalDaysLeft">0</span>
+          <span class="countdown-label">Days Still Waiting for You</span>
+          <span class="countdown-subtext">Unwritten chapters ahead</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stats Summary -->
+    <section id="statsSection" class="stats-section hidden">
+      <div class="stats-grid">
+        <div class="stat-card glass-card"><div class="stat-icon">&#127793;</div><span class="stat-number" id="statLived">0</span><span class="stat-label">Months Lived</span><span class="stat-subtext">Memories you've already made</span></div>
+        <div class="stat-card glass-card"><div class="stat-icon">&#127807;</div><span class="stat-number" id="statRemaining">0</span><span class="stat-label">Months Still Ahead</span><span class="stat-subtext">Time waiting to be filled</span></div>
+        <div class="stat-card glass-card"><div class="stat-icon">&#127795;</div><span class="stat-number" id="statTotal">0</span><span class="stat-label">Months in a Lifetime</span><span class="stat-subtext">Your whole story, in dots</span></div>
+        <div class="stat-card glass-card"><div class="stat-icon">&#9889;</div><span class="stat-number" id="statPercent">0%</span><span class="stat-label">Of Your Journey So Far</span><span class="stat-subtext">Every percent earned</span></div>
+      </div>
+      <div class="progress-container glass-card">
+        <div class="progress-header"><span>Your Life's Journey</span><span id="progressLabel">0%</span></div>
+        <div class="progress-bar-track"><div class="progress-bar-fill" id="progressBar"></div></div>
+        <div class="progress-meta"><span id="progressYearsLived">0 years lived</span><span id="progressYearsLeft">0 years remaining</span></div>
+      </div>
+    </section>
+
+    <!-- Auto-Generated Insights -->
+    <section id="insightsSection" class="insights-section hidden">
+      <h2 class="section-title">&#128161; A Closer Look</h2>
+      <p class="section-desc">Patterns and perspectives from your numbers.</p>
+      <div class="insights-grid" id="insightsGrid"></div>
+    </section>
+
+    <!-- Time Comparison Cards -->
+    <section id="comparisonSection" class="comparison-section hidden">
+      <h2 class="section-title">&#128171; What's Still Ahead</h2>
+      <p class="section-desc">A different way to feel the time you have left.</p>
+      <div class="perspective-toggle glass-card" id="perspectiveToggle">
+        <button class="perspective-btn active" data-mode="remaining">Time Remaining</button>
+        <button class="perspective-btn" data-mode="lived">Time Lived</button>
+        <button class="perspective-btn" data-mode="relative">Relative</button>
+      </div>
+      <div class="comparison-grid" id="comparisonGrid"></div>
+      <p class="section-microcopy" id="comparisonMicrocopy"></p>
+    </section>
+
+    <!-- Legend + View Toggle -->
+    <section id="legendSection" class="legend-section hidden">
+      <div class="legend glass-card">
+        <div class="legend-item"><span class="legend-dot lived"></span><span>Lived</span></div>
+        <div class="legend-item"><span class="legend-dot current"></span><span>You Are Here</span></div>
+        <div class="legend-item"><span class="legend-dot remaining"></span><span>Ahead</span></div>
+        <div class="legend-item"><span class="legend-dot milestone-dot"></span><span>Milestone</span></div>
+        <div class="legend-item"><span class="legend-dot goal-dot"></span><span>Goal</span></div>
+      </div>
+      <div class="view-controls">
+        <div class="view-toggle glass-card">
+          <button class="view-btn active" data-view="months">Months</button>
+          <button class="view-btn" data-view="weeks">Weeks</button>
+          <button class="view-btn" data-view="years">Years</button>
+        </div>
+        <label class="heatmap-toggle glass-card" title="Color dots by decade intensity">
+          <input type="checkbox" id="heatmapToggle"/>
+          <span class="heatmap-slider"></span>
+          <span class="heatmap-label">Heatmap</span>
+        </label>
+      </div>
+    </section>
+
+    <!-- Dot Grid -->
+    <section id="gridSection" class="grid-section hidden">
+      <div class="grid-wrapper glass-card">
+        <div id="dotGrid" class="dot-grid"></div>
+      </div>
+    </section>
+
+    <!-- Tooltip -->
+    <div id="tooltip" class="tooltip hidden"></div>
+
+    <!-- Milestones Section -->
+    <section id="milestoneSection" class="milestone-section hidden">
+      <h2 class="section-title">&#127942; Moments That Shaped You</h2>
+      <p class="section-desc">The experiences that made you who you are today.</p>
+      <div class="milestone-form glass-card">
+        <input type="text" id="milestoneName" placeholder="Milestone name..." maxlength="40"/>
+        <div class="stepper-wrap stepper-sm">
+          <button type="button" class="stepper-btn stepper-mini stepper-minus" data-target="milestoneAge" aria-label="Decrease"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="6" y1="12" x2="18" y2="12"/></svg></button>
+          <input type="number" id="milestoneAge" min="0" max="150" step="1" placeholder="Age"/>
+          <button type="button" class="stepper-btn stepper-mini stepper-plus" data-target="milestoneAge" aria-label="Increase"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="6" x2="12" y2="18"/><line x1="6" y1="12" x2="18" y2="12"/></svg></button>
+        </div>
+        <select id="milestoneIcon">
+          <option value="🎒">🎒 School</option><option value="🎓">🎓 Graduation</option>
+          <option value="💼">💼 First Job</option><option value="💍">💍 Marriage</option>
+          <option value="👶">👶 Child Born</option><option value="🏠">🏠 New Home</option>
+          <option value="✈️">✈️ Travel</option><option value="🏆">🏆 Achievement</option>
+          <option value="💔">💔 Loss</option><option value="⭐">⭐ Special</option>
+        </select>
+        <button id="addMilestoneBtn" class="btn-sm">Add Milestone</button>
+      </div>
+      <div id="milestoneList" class="milestone-list"></div>
+    </section>
+
+    <!-- Goal Tracker -->
+    <section id="goalSection" class="goal-section hidden">
+      <h2 class="section-title">&#127919; Dreams Worth Chasing</h2>
+      <p class="section-desc">Give your future self something to look forward to.</p>
+      <div class="goal-form glass-card">
+        <input type="text" id="goalName" placeholder="What's your goal?" maxlength="50"/>
+        <div class="stepper-wrap stepper-sm">
+          <button type="button" class="stepper-btn stepper-mini stepper-minus" data-target="goalAge" aria-label="Decrease"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="6" y1="12" x2="18" y2="12"/></svg></button>
+          <input type="number" id="goalAge" min="0" max="150" step="1" placeholder="By age"/>
+          <button type="button" class="stepper-btn stepper-mini stepper-plus" data-target="goalAge" aria-label="Increase"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="6" x2="12" y2="18"/><line x1="6" y1="12" x2="18" y2="12"/></svg></button>
+        </div>
+        <button id="addGoalBtn" class="btn-sm">Add Goal</button>
+      </div>
+      <div id="goalList" class="goal-list"></div>
+    </section>
+
+    <!-- Charts Section -->
+    <section id="chartsSection" class="charts-section hidden">
+      <h2 class="section-title">Your Life, Visualized</h2>
+      <div class="charts-grid">
+        <div class="chart-card glass-card">
+          <h3>Your Life So Far</h3>
+          <div class="donut-container">
+            <svg id="donutChart" viewBox="0 0 200 200" class="donut-svg">
+              <circle class="donut-bg" cx="100" cy="100" r="85"/>
+              <circle class="donut-fill" id="donutFill" cx="100" cy="100" r="85"/>
+              <text class="donut-text" x="100" y="95" id="donutText">0%</text>
+              <text class="donut-subtext" x="100" y="115" id="donutSubtext">of the journey</text>
+            </svg>
+          </div>
+        </div>
+        <div class="chart-card glass-card">
+          <h3>Where Your Time Goes</h3>
+          <div class="pie-container"><canvas id="pieChart" width="280" height="280"></canvas></div>
+          <div id="pieLegend" class="pie-legend"></div>
+        </div>
+        <div class="chart-card glass-card">
+          <h3>Your Decades</h3>
+          <div id="decadesChart" class="decades-chart"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Life Breakdown Categories -->
+    <section id="breakdownSection" class="breakdown-section hidden">
+      <h2 class="section-title">Where Your Life Goes</h2>
+      <p class="section-desc">Most of your time will be spent on just a few things. See how it all adds up.</p>
+      <div id="breakdownInsights" class="breakdown-insights"></div>
+      <div class="breakdown-grid" id="breakdownGrid">
+        <div class="breakdown-card glass-card" data-category="sleep">
+          <div class="breakdown-header"><span class="breakdown-icon">&#128564;</span><span class="breakdown-name">Sleep</span></div>
+          <div class="breakdown-input-row"><label>Hours/day:</label>
+            <div class="stepper-wrap stepper-sm"><button type="button" class="stepper-btn stepper-mini stepper-minus" data-target-cat="sleep" aria-label="Decrease"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="6" y1="12" x2="18" y2="12"/></svg></button><input type="number" class="breakdown-hours" data-category="sleep" min="0" max="24" step="0.5" value="8"/><button type="button" class="stepper-btn stepper-mini stepper-plus" data-target-cat="sleep" aria-label="Increase"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="6" x2="12" y2="18"/><line x1="6" y1="12" x2="18" y2="12"/></svg></button></div>
+          </div>
+          <div class="breakdown-result"><span class="breakdown-months" data-result="sleep">0 months</span><div class="breakdown-bar-track"><div class="breakdown-bar-fill" data-bar="sleep"></div></div></div>
+        </div>
+        <div class="breakdown-card glass-card" data-category="work">
+          <div class="breakdown-header"><span class="breakdown-icon">&#128188;</span><span class="breakdown-name">Work</span></div>
+          <div class="breakdown-input-row"><label>Hours/day:</label>
+            <div class="stepper-wrap stepper-sm"><button type="button" class="stepper-btn stepper-mini stepper-minus" data-target-cat="work" aria-label="Decrease"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="6" y1="12" x2="18" y2="12"/></svg></button><input type="number" class="breakdown-hours" data-category="work" min="0" max="24" step="0.5" value="8"/><button type="button" class="stepper-btn stepper-mini stepper-plus" data-target-cat="work" aria-label="Increase"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="6" x2="12" y2="18"/><line x1="6" y1="12" x2="18" y2="12"/></svg></button></div>
+          </div>
+          <div class="breakdown-result"><span class="breakdown-months" data-result="work">0 months</span><div class="breakdown-bar-track"><div class="breakdown-bar-fill" data-bar="work"></div></div></div>
+        </div>
+        <div class="breakdown-card glass-card" data-category="screen">
+          <div class="breakdown-header"><span class="breakdown-icon">&#128241;</span><span class="breakdown-name">Screen Time</span></div>
+          <div class="breakdown-input-row"><label>Hours/day:</label>
+            <div class="stepper-wrap stepper-sm"><button type="button" class="stepper-btn stepper-mini stepper-minus" data-target-cat="screen" aria-label="Decrease"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="6" y1="12" x2="18" y2="12"/></svg></button><input type="number" class="breakdown-hours" data-category="screen" min="0" max="24" step="0.5" value="4"/><button type="button" class="stepper-btn stepper-mini stepper-plus" data-target-cat="screen" aria-label="Increase"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="6" x2="12" y2="18"/><line x1="6" y1="12" x2="18" y2="12"/></svg></button></div>
+          </div>
+          <div class="breakdown-result"><span class="breakdown-months" data-result="screen">0 months</span><div class="breakdown-bar-track"><div class="breakdown-bar-fill" data-bar="screen"></div></div></div>
+        </div>
+        <div class="breakdown-card glass-card" data-category="exercise">
+          <div class="breakdown-header"><span class="breakdown-icon">&#127947;</span><span class="breakdown-name">Exercise</span></div>
+          <div class="breakdown-input-row"><label>Hours/day:</label>
+            <div class="stepper-wrap stepper-sm"><button type="button" class="stepper-btn stepper-mini stepper-minus" data-target-cat="exercise" aria-label="Decrease"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="6" y1="12" x2="18" y2="12"/></svg></button><input type="number" class="breakdown-hours" data-category="exercise" min="0" max="24" step="0.5" value="1"/><button type="button" class="stepper-btn stepper-mini stepper-plus" data-target-cat="exercise" aria-label="Increase"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="6" x2="12" y2="18"/><line x1="6" y1="12" x2="18" y2="12"/></svg></button></div>
+          </div>
+          <div class="breakdown-result"><span class="breakdown-months" data-result="exercise">0 months</span><div class="breakdown-bar-track"><div class="breakdown-bar-fill" data-bar="exercise"></div></div></div>
+        </div>
+        <div class="breakdown-card glass-card" data-category="eating">
+          <div class="breakdown-header"><span class="breakdown-icon">&#127869;</span><span class="breakdown-name">Eating</span></div>
+          <div class="breakdown-input-row"><label>Hours/day:</label>
+            <div class="stepper-wrap stepper-sm"><button type="button" class="stepper-btn stepper-mini stepper-minus" data-target-cat="eating" aria-label="Decrease"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="6" y1="12" x2="18" y2="12"/></svg></button><input type="number" class="breakdown-hours" data-category="eating" min="0" max="24" step="0.5" value="1.5"/><button type="button" class="stepper-btn stepper-mini stepper-plus" data-target-cat="eating" aria-label="Increase"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="6" x2="12" y2="18"/><line x1="6" y1="12" x2="18" y2="12"/></svg></button></div>
+          </div>
+          <div class="breakdown-result"><span class="breakdown-months" data-result="eating">0 months</span><div class="breakdown-bar-track"><div class="breakdown-bar-fill" data-bar="eating"></div></div></div>
+        </div>
+        <div class="breakdown-card glass-card" data-category="commute">
+          <div class="breakdown-header"><span class="breakdown-icon">&#128663;</span><span class="breakdown-name">Commute</span></div>
+          <div class="breakdown-input-row"><label>Hours/day:</label>
+            <div class="stepper-wrap stepper-sm"><button type="button" class="stepper-btn stepper-mini stepper-minus" data-target-cat="commute" aria-label="Decrease"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="6" y1="12" x2="18" y2="12"/></svg></button><input type="number" class="breakdown-hours" data-category="commute" min="0" max="24" step="0.5" value="1"/><button type="button" class="stepper-btn stepper-mini stepper-plus" data-target-cat="commute" aria-label="Increase"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="6" x2="12" y2="18"/><line x1="6" y1="12" x2="18" y2="12"/></svg></button></div>
+          </div>
+          <div class="breakdown-result"><span class="breakdown-months" data-result="commute">0 months</span><div class="breakdown-bar-track"><div class="breakdown-bar-fill" data-bar="commute"></div></div></div>
+        </div>
+      </div>
+      <!-- Add Custom Category -->
+      <div class="custom-breakdown-form glass-card">
+        <span class="breakdown-icon">➕</span>
+        <input type="text" id="customCatName" placeholder="Category name (e.g. Reading)" maxlength="20" />
+        <input type="text" id="customCatIcon" placeholder="Emoji" maxlength="4" value="⏰" style="width:50px;text-align:center;" />
+        <div class="stepper-wrap stepper-sm">
+          <button type="button" class="stepper-btn stepper-mini stepper-minus" data-target="customCatHours" aria-label="Decrease"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="6" y1="12" x2="18" y2="12"/></svg></button>
+          <input type="number" id="customCatHours" min="0" max="24" step="0.5" value="1" style="width:50px;" />
+          <button type="button" class="stepper-btn stepper-mini stepper-plus" data-target="customCatHours" aria-label="Increase"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="6" x2="12" y2="18"/><line x1="6" y1="12" x2="18" y2="12"/></svg></button>
+        </div>
+        <span style="font-size:.8rem;color:var(--text-secondary);">hrs/day</span>
+        <button id="addCustomCatBtn" class="btn-sm">Add</button>
+      </div>
+    </section>
+
+    <!-- Animated Timeline -->
+    <section id="timelineSection" class="timeline-section hidden">
+      <h2 class="section-title">&#128336; The Road So Far &amp; Beyond</h2>
+      <p class="section-desc">A quiet walk through your decades - past, present, and future.</p>
+      <div class="timeline-outer">
+        <div class="timeline-container" id="timelineContainer"></div>
+      </div>
+    </section>
+
+    <!-- Export Panel (shown on export click) -->
+    <div id="exportPanel" class="export-panel glass-card hidden">
+      <h3>Save &amp; Share</h3>
+      <div class="export-actions">
+        <button id="exportImage" class="btn-sm">&#128247; Save as Image</button>
+        <button id="exportSnapshot" class="btn-sm">&#127912; Life Snapshot</button>
+        <button id="exportStats" class="btn-sm">&#128203; Copy to Clipboard</button>
+        <button id="exportPrint" class="btn-sm">&#128424; Print View</button>
+        <button id="exportShare" class="btn-sm" style="display:none;">&#128279; Share</button>
+      </div>
+      <button id="closeExportPanel" class="export-close">&times;</button>
+    </div>
+
+    <!-- Life Snapshot Modal -->
+    <div id="snapshotModal" class="snapshot-modal hidden">
+      <div class="snapshot-overlay"></div>
+      <div class="snapshot-content glass-card">
+        <canvas id="snapshotCanvas"></canvas>
+        <div class="snapshot-actions">
+          <button id="snapshotDownload" class="btn-sm">&#128229; Download</button>
+          <button id="snapshotClose" class="btn-sm">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p>Make every month matter ⌛ &mdash; <strong>Life Canvas</strong></p>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+{
+  "name": "Life Canvas",
+  "short_name": "Life Canvas",
+  "description": "Visualize your life in months, weeks, and years. Track milestones, set goals, and gain perspective.",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#f0fdf4",
+  "theme_color": "#22c55e",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='80' fill='%2322c55e'/%3E%3Cpath d='M256 120 C220 180 190 260 210 340 C225 380 287 380 302 340 C322 260 292 180 256 120z' fill='white' opacity='.9'/%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='32' fill='%2322c55e'/%3E%3Cpath d='M96 40 C80 70 68 100 76 130 C82 148 110 148 116 130 C124 100 112 70 96 40z' fill='white' opacity='.9'/%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
