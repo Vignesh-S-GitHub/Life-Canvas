@@ -3,6 +3,9 @@
 A beautiful, interactive web app that visualizes your entire life in months, weeks, or years. Every dot represents a unit of time - see how you've spent your life and what lies ahead.
 
 ![Life Canvas](https://img.shields.io/badge/Status-Production%20Ready-brightgreen)
+![Hosted on](https://img.shields.io/badge/Hosted%20on-Cloudflare%20Pages-F38020?logo=cloudflarepages)
+
+**Live:** [life-canvas.pages.dev](https://life-canvas.pages.dev)
 
 ## Features
 
@@ -41,12 +44,29 @@ Life-Reminder/
 ├── app.js            # Application logic (~1400 lines)
 ├── manifest.json     # PWA manifest
 ├── sw.js             # Service worker for offline support
+├── wrangler.jsonc    # Cloudflare Workers config
 └── README.md         # This file
 ```
 
 ## Deployment
 
-### Option 1: Any Static Web Server
+This project is hosted on **Cloudflare Pages** using Cloudflare Workers static assets.
+
+### Cloudflare Pages (Current)
+
+The site is deployed via Wrangler with the config in `wrangler.jsonc`:
+
+```bash
+# Install Wrangler
+npm install -g wrangler
+
+# Deploy
+wrangler deploy
+```
+
+### Other Options
+
+#### Any Static Web Server
 
 This is a static site - no build step needed. Simply serve the files from any web server.
 
@@ -61,30 +81,24 @@ npx serve .
 php -S localhost:8080
 ```
 
-### Option 2: GitHub Pages
+#### GitHub Pages
 
 1. Push this repo to GitHub
 2. Go to **Settings → Pages**
 3. Set source to **main** branch, root folder
 4. Your site will be live at `https://username.github.io/Life-Reminder/`
 
-### Option 3: Netlify
+#### Netlify
 
 1. Go to [netlify.com](https://netlify.com) and sign in
 2. Drag and drop the project folder onto the deploy area
 3. Your site is live instantly with a free URL
 
-### Option 4: Vercel
+#### Vercel
 
 1. Install Vercel CLI: `npm i -g vercel`
 2. Run `vercel` in the project directory
 3. Follow the prompts - no configuration needed
-
-### Option 5: Cloudflare Pages
-
-1. Connect your GitHub repo at [pages.cloudflare.com](https://pages.cloudflare.com)
-2. Set build command to empty and output directory to `/`
-3. Deploy
 
 ## Browser Support
 
