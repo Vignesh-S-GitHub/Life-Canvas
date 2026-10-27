@@ -2,15 +2,21 @@
 
 # 🌱 Life Canvas
 
-### See your time. Remember your milestones. Make room for your goals.
+**See your time. Remember your milestones. Make room for your goals.**
 
-**Vanilla JavaScript · HTML & CSS · Canvas & SVG · PWA**
+![JavaScript](https://img.shields.io/badge/JavaScript-B88A00?style=flat-square&logo=javascript&logoColor=white)
+![Canvas + SVG](https://img.shields.io/badge/Canvas%20%2B%20SVG-22A65A?style=flat-square)
+![PWA](https://img.shields.io/badge/PWA-5A0FC8?style=flat-square&logo=pwa&logoColor=white)
 
-[Open Life Canvas](https://life-canvas.shanmugamrenuga4.workers.dev/) · [Features](#-features) · [Run locally](#-run-locally) · [Deployment](#-deployment)
+[Open app](https://life-canvas.shanmugamrenuga4.workers.dev/) · [Features](#features) · [Run locally](#run-locally)
 
 </div>
 
+---
+
 Life Canvas visualizes a lifespan as a grid of **weeks, months, or years**. Each dot represents a unit of time, making it easy to explore elapsed time, upcoming milestones, and future goals in one interactive view.
+
+<a id="features"></a>
 
 ## ✨ Features
 
@@ -28,6 +34,8 @@ Life Canvas visualizes a lifespan as a grid of **weeks, months, or years**. Each
 | 📱 App experience | Installable PWA with a service worker for offline support |
 
 Lifespan presets and remaining-time figures are **illustrative estimates based on the selected inputs**, not predictions of an individual's lifespan. Use the app as a reflection and planning tool.
+
+<a id="run-locally"></a>
 
 ## 🚀 Run locally
 
@@ -98,6 +106,10 @@ Use a modern Chrome, Edge, Firefox, or Safari browser. After changes, manually c
 
 If an update looks stale, refresh the app so the browser loads the new assets and service worker. Review the browser's site storage settings when troubleshooting cached versions.
 
----
+## 🤝 Contributing
 
-<p align="center"><sub>A visual reminder to give your time a purpose.</sub></p>
+Open an issue with a reproducible example or submit a focused pull request. Keep setup instructions and documentation aligned with any behavior changes.
+
+## 📄 License
+
+No repository-level `LICENSE` file is currently included.
